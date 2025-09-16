@@ -42,7 +42,7 @@ data class AppUser(
     @CreationTimestamp
     val createdTime: LocalDateTime = LocalDateTime.now(),
 
-    // 연관관계 매핑 (필요한 경우)
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_metro_id", insertable = false, updatable = false)
     val regionMetro: RegionMetro? = null,

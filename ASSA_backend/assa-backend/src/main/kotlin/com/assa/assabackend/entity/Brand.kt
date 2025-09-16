@@ -5,20 +5,19 @@ import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "region_metro")
-data class RegionMetro(
+@Table(name = "brand")
+data class Brand(
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "region_metro_id")
-    val regionMetroId: Long = 0,
-
-    @Column(name="name", length = 50, nullable = false)
-    val name: String,
+    @Column(name = "brand_id", nullable = false)
+    val brandId: Int,
 
     @Column(name = "created_time", nullable = false)
     @CreationTimestamp
     val createdTime: LocalDateTime = LocalDateTime.now(),
 
-    @OneToMany(mappedBy = "regionMetro", fetch = FetchType.LAZY)
-    val appUsers: List<AppUser> = emptyList()
+    @OneToMany(mappedBy = "brand", fetch = FetchType.LAZY)
+    val phone: Phone? = null
+
 )

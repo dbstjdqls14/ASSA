@@ -26,6 +26,13 @@ data class AppUser(
     @Column(name = "email", length = 60, nullable = false)
     val email: String,
 
+    @Column(name = "password", length = 500)
+    val password: String,
+
+    // 이메일 인증 관련 필드 추가
+    @Column(name = "email_verified", nullable = false)
+    val emailVerified: Boolean = false,
+
     @Column(name = "phone_id")
     val phoneId: Int? = null,
 
@@ -54,4 +61,6 @@ data class AppUser(
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "phone_id", insertable = false, updatable = false)
     val phone: Phone? = null
+
+
 )

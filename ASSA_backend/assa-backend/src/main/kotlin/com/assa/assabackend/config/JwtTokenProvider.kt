@@ -1,7 +1,7 @@
 package com.assa.assabackend.config
 
-import com.sun.org.slf4j.internal.LoggerFactory
 import io.jsonwebtoken.*
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.security.SignatureException

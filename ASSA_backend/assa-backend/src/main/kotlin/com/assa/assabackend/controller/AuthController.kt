@@ -1,0 +1,66 @@
+package com.assa.assabackend.controller
+
+import com.assa.assabackend.dto.*
+import com.assa.assabackend.service.AuthService
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.*
+
+@RestController
+@RequestMapping("/auth")
+@Validated
+class AuthController (
+    private val authService: AuthService
+) {
+
+
+    /**
+     * 이메일 인증번호 발송
+     */
+    @PostMapping("/send-verification")
+    fun sendVerificationCode(
+        @Valid @RequestBody request: SendVerificationRequest
+    ): ResponseEntity<ApiResponse<VerificationStatusResponse>> {
+        val response = authService.sendVerificationCode(request.email)
+        val status = if (response.success) HttpStatus.OK else HttpStatus.BAD_REQUEST
+        return ResponseEntity(response, status)
+    }
+
+    /**
+     * 인증번호 검증
+     */
+    @PostMapping("/verify-code")
+    fun verifyCode(
+        @Valid @RequestBody request: VerifyCodeRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = authService.verifyCode(request.email, request.code)
+        val status = if (response.success) HttpStatus.OK else HttpStatus.BAD_REQUEST
+        return ResponseEntity(response, status)
+    }
+
+    /**
+     * 인증 상태 확인
+     */
+    @GetMapping("/verification-status")
+    fun getVerificationStatus(
+        @RequestParam @Email email: String
+    ): ResponseEntity<ApiResponse<VerificationStatusResponse>> {
+        val response = authService.getVerificationStatus(email)
+        return ResponseEntity.ok(response)
+    }
+
+    /**
+     * 회원가입
+     */
+    @PostMapping("/signup")
+    fun signup(
+        @Valid @RequestBody request: SignupRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = authService.signup(request)
+        val status = if (response.success) HttpStatus.OK else HttpStatus.BAD_REQUEST
+        return ResponseEntity(response, status)
+    }
+}

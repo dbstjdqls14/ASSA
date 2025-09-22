@@ -40,3 +40,9 @@ class JwtAuthenticationFilter(
         } else null
     }
 }
+/**
+ * jdbc 속도차이
+ * jpa
+ * 부하테스트
+ * 쉘 직접연결
+ */

@@ -15,7 +15,7 @@ data class AppUser(
     val userId: Long = 0,
 
     @Column(name = "region_metro_id")
-    val regionMetroId: Int? = null,
+    val regionMetroId: Long? = null,
 
     @Column(name = "region_district_id")
     val regionDistrictId: Int? = null,
@@ -34,7 +34,7 @@ data class AppUser(
     val emailVerified: Boolean = false,
 
     @Column(name = "phone_id")
-    val phoneId: Int? = null,
+    val phoneId: Long? = null,
 
     @Column(name = "profile_path", length = 300)
     val profilePath: String? = null,
@@ -48,7 +48,6 @@ data class AppUser(
     @Column(name = "created_time", nullable = false)
     @CreationTimestamp
     val createdTime: LocalDateTime = LocalDateTime.now(),
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_metro_id", insertable = false, updatable = false)
@@ -64,3 +63,18 @@ data class AppUser(
 
 
 )
+
+/**
+ * user_id
+ * region_metro_id
+ * region_district_id
+ * name
+ * email
+ * phone_id
+ * profile_path
+ * is_deleted
+ * deleted_time
+ * created_time
+ * password
+ * email_verified
+ */

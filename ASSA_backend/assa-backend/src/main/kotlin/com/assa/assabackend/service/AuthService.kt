@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 @Service
 @Transactional
-public class AuthService(
+class AuthService(
     private val redisTemplate: RedisTemplate<String, String>,
     private val mailSender: JavaMailSender,
     private val userRepository: UserRepository,
@@ -139,7 +139,7 @@ public class AuthService(
     }
 
     fun signup(request: SignupRequest): ApiResponse<Nothing> {
-        // 1. 이메일 인증 완료 여부 확인
+        // 이메일 인증 완료 여부 확인
         val verifiedKey = "email_verified:${request.email}"
         val isVerified = redisTemplate.opsForValue().get(verifiedKey)
 
@@ -147,16 +147,34 @@ public class AuthService(
             return ApiResponse(false, "이메일 인증을 먼저 완료해주세요")
         }
 
+
         // 2. 중복 이메일 확인
         if (userRepository.existsByEmail(request.email)) {
             return ApiResponse(false, "이미 가입된 이메일입니다")
         }
-
-        // 3. 사용자 생성
+        /**
+         * user_id serial v
+         * region_metro_id v
+         * region_district_id
+         * name v
+         * email v
+         * phone_id  v
+         * profile_path v
+         * is_deleted
+         * deleted_time
+         * created_time
+         * password v
+         * email_verified
+         */
         val user = AppUser(
             email = request.email,
+            regionMetroId = request.region_metro_id,
             password = passwordEncoder.encode(request.password),
+//            phoneId = request.phone_id,
+            phoneId = null,
             name = request.name,
+            profilePath = request.profile_path,
+            emailVerified = true,
         )
 
         userRepository.save(user)

@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtTokenProvider: JwtTokenProvider,
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val userDetailsService: UserDetailsService
 ){
 
@@ -38,11 +39,12 @@ class SecurityConfig(
         http.csrf { it.disable() }
             .sessionManagement{ it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests{ auth ->
-                auth.requestMatchers("/auth/**").permitAll()
-                    .anyRequest().authenticated()
+                auth
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/**").permitAll()
             }
             .addFilterBefore(
-                JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                JwtAuthenticationFilter(jwtTokenProvider),
                 UsernamePasswordAuthenticationFilter::class.java
             )
         return http.build()

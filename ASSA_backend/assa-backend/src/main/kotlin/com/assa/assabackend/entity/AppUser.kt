@@ -18,7 +18,7 @@ data class AppUser(
     val regionMetroId: Long? = null,
 
     @Column(name = "region_district_id")
-    val regionDistrictId: Int? = null,
+    val regionDistrictId: Long? = null,
 
     @Column(name = "name", length = 30, nullable = false)
     val name: String,

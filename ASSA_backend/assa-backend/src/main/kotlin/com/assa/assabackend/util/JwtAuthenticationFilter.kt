@@ -4,45 +4,86 @@ import com.assa.assabackend.config.JwtTokenProvider
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
+@Component  // 
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val userDetailsService: UserDetailsService
+    private val jwtTokenProvider: JwtTokenProvider
 ) : OncePerRequestFilter() {
+
+    private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val token = getTokenFromRequest(request)
+        val requestURI = request.requestURI
+        val method = request.method
 
-//        if (token != null && jwtTokenProvider.validateToken(token)) { // 조건문 선후 관게 중요
-////            val email = jwtTokenProvider.getEmailFromToken(token)
-//            val userDetails = userDetailsService.loadUserByUsername(email)
-//
-//            val authentication = UsernamePasswordAuthenticationToken(
-//                userDetails, null, userDetails.authorities
-//            )
-//            SecurityContextHolder.getContext().authentication = authentication
-//        }
+        logger.info("JWT 필터 진입, - $method $requestURI")
 
-        filterChain.doFilter(request, response);
+        try {
+            val token = getTokenFromRequest(request)
+            logger.info("토큰 추출 결과: ${if (token != null) "토큰 있음 (${token.take(20)}...)" else "토큰 없음"}")
+
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                logger.info("토큰 검증 성공")
+
+                // JWT에서 사용자 정보 추출
+                val userId = jwtTokenProvider.getUserIdFromToken(token)
+
+                logger.info("사용자 정보 - userId: $userId")
+
+                // 권한 설정 (간단하게 ROLE_USER로)
+                val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
+
+                // Authentication 객체 생성
+                val authentication = UsernamePasswordAuthenticationToken(
+                    userId.toString(),
+                    null,               // credentials는 null (JWT 방식)
+                    authorities         // 권한 목록, 아마2개?
+                )
+
+                // SecurityContext에 인증 정보 설정
+                SecurityContextHolder.getContext().authentication = authentication
+                logger.info(" SecurityContext에 저장 1 ")
+
+                // 설정 확인
+                val currentAuth = SecurityContextHolder.getContext().authentication
+                logger.info("현재 인증 정보 - name: ${currentAuth?.name}, authorities: ${currentAuth?.authorities}")
+
+            } else {
+                if (token != null) {
+                    logger.warn(" 토큰 검증 실패")
+                } else {
+                    logger.info("토큰 없음")
+                }
+            }
+
+        } catch (e: Exception) {
+            logger.error("JWT 필터 처리 중 오류: ${e.message}", e)
+            SecurityContextHolder.clearContext()
+        }
+
+        filterChain.doFilter(request, response)
     }
+
     private fun getTokenFromRequest(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader("Authorization")
+        logger.info(" Authorization 헤더: ${bearerToken?.take(50)}...")
+
         return if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            bearerToken.substring(7)
-        } else null
+            val token = bearerToken.substring(7)
+            token
+        } else {
+            logger.info("Bearer 토큰 형식이 아니거나 헤더가 없음")
+            null
+        }
     }
 }
-/**
- * jdbc 속도차이
- * jpa
- * 부하테스트
- * 쉘 직접연결
- */

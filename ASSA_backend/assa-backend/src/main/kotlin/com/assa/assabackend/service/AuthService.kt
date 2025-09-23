@@ -1,8 +1,7 @@
 package com.assa.assabackend.service
 
-import com.assa.assabackend.dto.ApiResponse
-import com.assa.assabackend.dto.SignupRequest
-import com.assa.assabackend.dto.VerificationStatusResponse
+import com.assa.assabackend.config.JwtTokenProvider
+import com.assa.assabackend.dto.*
 import com.assa.assabackend.entity.AppUser
 import com.assa.assabackend.repository.UserRepository
 import jakarta.transaction.Transactional
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -22,7 +22,8 @@ class AuthService(
     private val redisTemplate: RedisTemplate<String, String>,
     private val mailSender: JavaMailSender,
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtTokenProvider: JwtTokenProvider
 ) {
 
     companion object { // java static 같은놈
@@ -138,6 +139,9 @@ class AuthService(
         return ApiResponse(true, "인증 상태 조회 성공", response)
     }
 
+    /**
+     * 회원가입
+     */
     fun signup(request: SignupRequest): ApiResponse<Nothing> {
         // 이메일 인증 완료 여부 확인
         val verifiedKey = "email_verified:${request.email}"
@@ -184,6 +188,29 @@ class AuthService(
 
         logger.info("User signup successful: ${request.email}")
         return ApiResponse(true, "회원가입이 완료되었습니다")
+    }
+
+    /**
+     * 로그인
+     */
+    fun login(request: LoginRequest): TokenResponse {
+        logger.info("email :: " + request.email)
+        val user = userRepository.findByEmail(request.email)
+            ?: throw BadCredentialsException("Invalid email or pwd")
+        logger.info(request.password +" :: " + user.password)
+
+        if(!passwordEncoder.matches(request.password, user.password)){
+            throw BadCredentialsException("Invalid email or pwd")
+        }
+
+        val accessToken = jwtTokenProvider.generateAccessToken(user.userId)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(user.userId)
+
+        return TokenResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            expiresIn = 1800
+        )
     }
 
     private fun buildEmailContent(code: String): String {

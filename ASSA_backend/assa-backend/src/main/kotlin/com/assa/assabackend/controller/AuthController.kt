@@ -43,6 +43,7 @@ class AuthController (
 
     /**
      * 인증 상태 확인
+     * 회원가입 시도 시에 이게 true가 떠야함.
      */
     @GetMapping("/verification-status")
     fun getVerificationStatus(
@@ -54,6 +55,7 @@ class AuthController (
 
     /**
      * 회원가입
+     * 필요 정보 다 입력 시.
      */
     @PostMapping("/signup")
     fun signup(
@@ -62,5 +64,13 @@ class AuthController (
         val response = authService.signup(request)
         val status = if (response.success) HttpStatus.OK else HttpStatus.BAD_REQUEST
         return ResponseEntity(response, status)
+    }
+
+    @PostMapping("/login")
+    fun login(
+        @Valid @RequestBody request: LoginRequest
+    ): ResponseEntity<TokenResponse> {
+        val tokenResponse = authService.login(request)
+        return ResponseEntity(tokenResponse, HttpStatus.OK)
     }
 }

@@ -21,15 +21,15 @@ class JwtAuthenticationFilter(
     ) {
         val token = getTokenFromRequest(request)
 
-        if (token != null && jwtTokenProvider.validateToken(token)) { // 조건문 선후 관게 중요
-            val email = jwtTokenProvider.getEmailFromToken(token)
-            val userDetails = userDetailsService.loadUserByUsername(email)
-
-            val authentication = UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.authorities
-            )
-            SecurityContextHolder.getContext().authentication = authentication
-        }
+//        if (token != null && jwtTokenProvider.validateToken(token)) { // 조건문 선후 관게 중요
+////            val email = jwtTokenProvider.getEmailFromToken(token)
+//            val userDetails = userDetailsService.loadUserByUsername(email)
+//
+//            val authentication = UsernamePasswordAuthenticationToken(
+//                userDetails, null, userDetails.authorities
+//            )
+//            SecurityContextHolder.getContext().authentication = authentication
+//        }
 
         filterChain.doFilter(request, response);
     }

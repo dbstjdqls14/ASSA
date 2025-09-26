@@ -73,21 +73,43 @@ class JwtTokenProvider(
     }
 
     fun validateToken(token: String): Boolean {
-        try{
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token)
-        } catch (e: SignatureException) {
-            logger.error("Invalid JWT signature")
-        } catch (ex: MalformedJwtException) {
-            logger.error("Invalid JWT token")
-        } catch (ex: ExpiredJwtException) {
-            logger.error("Expired JWT token")
-        } catch (ex: UnsupportedJwtException) {
-            logger.error("Unsupported JWT token")
-        } catch (ex: IllegalArgumentException) {
-            logger.error("JWT claims string is empty")
+        return try {
+            val claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+
+            val isExpired = claims.body.expiration.before(Date())
+            if (isExpired) {
+                logger.warn("토큰이 만료되었습니다")
+                return false
+            }
+
+            true
+
+        } catch (e: SecurityException) {
+            logger.error("JWT 서명이 유효하지 않습니다: ${e.message}")
+            false
+        } catch (e: MalformedJwtException) {
+            logger.error("JWT 형식이 잘못되었습니다: ${e.message}")
+            false
+        } catch (e: ExpiredJwtException) {
+            logger.error("JWT 토큰이 만료되었습니다: ${e.message}")
+            logger.error("만료 시간: ${e.claims.expiration}")
+            logger.error("현재 시간: ${Date()}")
+            false
+        } catch (e: UnsupportedJwtException) {
+            logger.error("지원하지 않는 JWT 토큰입니다: ${e.message}")
+            false
+        } catch (e: IllegalArgumentException) {
+            logger.error("JWT 토큰이 비어있습니다: ${e.message}")
+            false
+        } catch (e: Exception) {
+            logger.error("JWT 토큰 검증 중 예상치 못한 오류: ${e.message}", e)
+            false
         }
-        return false
     }
+
 
     fun validateRefreshToken(token: String, userId: Long): Boolean {
         return try {
@@ -107,7 +129,7 @@ class JwtTokenProvider(
 
     private fun getClaims(token: String): Claims {
         return Jwts.parserBuilder()
-            .setSigningKey(jwtSecret)
+            .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .body

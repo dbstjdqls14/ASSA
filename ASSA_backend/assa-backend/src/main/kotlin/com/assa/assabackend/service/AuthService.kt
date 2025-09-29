@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Duration
@@ -211,6 +212,20 @@ class AuthService(
             refreshToken = refreshToken,
             expiresIn = 1800
         )
+    }
+
+    fun refresh(
+        refreshToken: String,
+        authentication: Authentication): TokenResponse {
+        if(jwtTokenProvider.validateRefreshToken(refreshToken, authentication.name.toLong())) {
+            val accessToken = jwtTokenProvider.generateAccessToken(authentication.name.toLong()) // userId임
+            return TokenResponse(
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                expiresIn = 1800
+            )
+        }
+        throw BadCredentialsException("Invalid refresh token")
     }
 
     private fun buildEmailContent(code: String): String {

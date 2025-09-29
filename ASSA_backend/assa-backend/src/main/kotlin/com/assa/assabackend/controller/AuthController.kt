@@ -6,6 +6,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
@@ -71,6 +72,16 @@ class AuthController (
         @Valid @RequestBody request: LoginRequest
     ): ResponseEntity<TokenResponse> {
         val tokenResponse = authService.login(request)
+        return ResponseEntity(tokenResponse, HttpStatus.OK)
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(
+        @Valid @RequestBody request: String,
+        authentication: Authentication
+    ): ResponseEntity<TokenResponse> {
+        val tokenResponse = authService.refresh(request, authentication)
+
         return ResponseEntity(tokenResponse, HttpStatus.OK)
     }
 }

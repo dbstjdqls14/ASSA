@@ -13,11 +13,29 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component  //
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val excludedPaths: List<String> = emptyList()
 ) : OncePerRequestFilter() {
 
     private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val requestPath = request.requestURI
 
+        val allExcludedPaths = excludedPaths
+
+        return allExcludedPaths.any { excludedPath ->
+            when {
+                excludedPath.endsWith("/**") -> {
+                    val basePath = excludedPath.removeSuffix("/**")
+                    requestPath.startsWith(basePath)
+                }
+                excludedPath.contains("*") -> {
+                    requestPath.matches(excludedPath.replace("*", ".*").toRegex())
+                }
+                else -> requestPath == excludedPath
+            }
+        }
+    }
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,

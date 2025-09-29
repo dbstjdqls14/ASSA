@@ -44,9 +44,21 @@ class SecurityConfig(
                     .requestMatchers("/**").permitAll()
             }
             .addFilterBefore(
-                JwtAuthenticationFilter(jwtTokenProvider),
+                createJwtFilterWithExclusions(),
                 UsernamePasswordAuthenticationFilter::class.java
             )
         return http.build()
     }
+    private fun createJwtFilterWithExclusions(): JwtAuthenticationFilter {
+        val excludedPaths = listOf(
+            "/auth/login",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/logout"
+        )
+
+        return JwtAuthenticationFilter(jwtTokenProvider, excludedPaths)
+    }
 }
+
+

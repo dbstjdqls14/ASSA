@@ -77,10 +77,11 @@ class AuthController (
 
     @PostMapping("/refresh")
     fun refresh(
-        @Valid @RequestBody request: String,
+        @RequestBody @Valid refreshTokenRequest: RefreshTokenRequest,
         authentication: Authentication
     ): ResponseEntity<TokenResponse> {
-        val tokenResponse = authService.refresh(request, authentication)
+        val token = refreshTokenRequest.getCleanToken()
+        val tokenResponse = authService.refresh(token, authentication)
 
         return ResponseEntity(tokenResponse, HttpStatus.OK)
     }

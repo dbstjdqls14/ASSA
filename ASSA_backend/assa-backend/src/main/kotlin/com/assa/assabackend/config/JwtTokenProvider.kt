@@ -74,6 +74,7 @@ class JwtTokenProvider(
 
     fun validateToken(token: String): Boolean {
         return try {
+            logger.info("=================123123 ====== + " + token)
             val claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -114,7 +115,7 @@ class JwtTokenProvider(
     fun validateRefreshToken(token: String, userId: Long): Boolean {
         return try {
             if(!validateToken(token)) return false
-
+            logger.info("================" + token)
             val storedToken = redisTemplate.opsForValue().get("refresh_token:$userId")
             storedToken == token
         } catch(e: Exception){

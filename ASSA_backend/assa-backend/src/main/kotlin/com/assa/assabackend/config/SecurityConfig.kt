@@ -59,6 +59,6 @@ class SecurityConfig(
 
         return JwtAuthenticationFilter(jwtTokenProvider, excludedPaths)
     }
-}
+}//
 
 

@@ -58,10 +58,8 @@ class JwtAuthenticationFilter(
 
                 logger.info("사용자 정보 - userId: $userId")
 
-                // 권한 설정 (간단하게 ROLE_USER로)
                 val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
-                // Authentication 객체 생성
                 val authentication = UsernamePasswordAuthenticationToken(
                     userId.toString(),
                     null,               // credentials는 null (JWT 방식)

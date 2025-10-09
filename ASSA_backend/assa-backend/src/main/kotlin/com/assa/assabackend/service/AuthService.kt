@@ -3,7 +3,9 @@ package com.assa.assabackend.service
 import com.assa.assabackend.config.JwtTokenProvider
 import com.assa.assabackend.dto.*
 import com.assa.assabackend.entity.AppUser
+import com.assa.assabackend.exception.InvalidRefreshTokenException
 import com.assa.assabackend.repository.UserRepository
+import com.assa.assabackend.repository.findByUserIdOrThrow
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
@@ -217,15 +219,23 @@ class AuthService(
     fun refresh(
         refreshToken: String,
         authentication: Authentication): TokenResponse {
-        if(jwtTokenProvider.validateRefreshToken(refreshToken, authentication.name.toLong())) {
-            val accessToken = jwtTokenProvider.generateAccessToken(authentication.name.toLong()) // userId임
-            return TokenResponse(
-                accessToken = accessToken,
-                refreshToken = refreshToken,
-                expiresIn = 1800
-            )
-        }
-        throw BadCredentialsException("Invalid refresh token")
+
+        val userId =  authentication.name.toLong()
+
+        if(!(jwtTokenProvider.validateRefreshToken(refreshToken, userId))) // RT 유효성 검사1
+            throw InvalidRefreshTokenException()
+
+        val user = userRepository.findByUserIdOrThrow(userId)
+
+
+        val accessToken = jwtTokenProvider.generateAccessToken(userId) // userId임
+
+        return TokenResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            expiresIn = 1800
+        )
+
     }
 
     private fun buildEmailContent(code: String): String {

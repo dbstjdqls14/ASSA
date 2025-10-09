@@ -22,8 +22,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtTokenProvider: JwtTokenProvider,
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val userDetailsService: UserDetailsService
 ){
 
     @Bean

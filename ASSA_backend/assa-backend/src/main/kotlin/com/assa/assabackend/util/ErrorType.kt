@@ -19,6 +19,7 @@ enum class ErrorType(
     EXPIRED_TOKEN("40102", "만료된 토큰입니다.", 401),
     MALFORMED_TOKEN("40103", "잘못된 형식의 토큰입니다.", 401),
     MISSING_TOKEN("40104", "토큰이 누락되었습니다.", 401),
+    INVALID_CREDENTIAL("40105","이메일 혹은 비밀번호가 유효하지 않습니다.", 401),
 
     // 403 Forbidden
     FORBIDDEN("40300", "접근 권한이 없습니다.", 403),

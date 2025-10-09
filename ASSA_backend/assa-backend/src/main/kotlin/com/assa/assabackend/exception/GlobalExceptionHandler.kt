@@ -51,5 +51,17 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(InvalidCredentialException::class)
+    fun handleInvalidCredentialException(): ResponseEntity<ErrorResponse> {
+        val error = ErrorType.INVALID_CREDENTIAL
+        return ResponseEntity.status(error.status).body(
+            ErrorResponse(
+                errorContent = error.message,
+                errorType = error.code,
+                errorStatus = error.status
+            )
+        )
+    }
+
 
 }

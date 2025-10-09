@@ -3,6 +3,7 @@ package com.assa.assabackend.service
 import com.assa.assabackend.config.JwtTokenProvider
 import com.assa.assabackend.dto.*
 import com.assa.assabackend.entity.AppUser
+import com.assa.assabackend.exception.InvalidCredentialException
 import com.assa.assabackend.exception.InvalidRefreshTokenException
 import com.assa.assabackend.repository.UserRepository
 import com.assa.assabackend.repository.findByUserIdOrThrow
@@ -197,13 +198,11 @@ class AuthService(
      * 로그인
      */
     fun login(request: LoginRequest): TokenResponse {
-        logger.info("email :: " + request.email)
         val user = userRepository.findByEmail(request.email)
-            ?: throw BadCredentialsException("Invalid email or pwd")
-        logger.info(request.password +" :: " + user.password)
+            ?: throw InvalidCredentialException()
 
         if(!passwordEncoder.matches(request.password, user.password)){
-            throw BadCredentialsException("Invalid email or pwd")
+            throw InvalidCredentialException()
         }
 
         val accessToken = jwtTokenProvider.generateAccessToken(user.userId)

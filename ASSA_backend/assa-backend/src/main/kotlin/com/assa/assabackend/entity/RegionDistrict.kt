@@ -11,10 +11,10 @@ data class RegionDistrict (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "region_district_id")
-    val regionDistrictId: Int,
+    val regionDistrictId: Long,
 
     @Column(name="region_metro_id", nullable = false)
-    val regionMetroId: Int,
+    val regionMetroId: Long,
 
     @Column(name="name", length = 50, nullable = false)
     val name: String,

@@ -1,6 +1,7 @@
 package com.assa.assabackend.util
 
 import com.assa.assabackend.config.JwtTokenProvider
+import com.assa.assabackend.exception.InvalidTokenException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -18,7 +19,7 @@ class JwtAuthenticationFilter(
 ) : OncePerRequestFilter() {
 
     private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean { // 단순히 검사하지 않을 Path
         val requestPath = request.requestURI
 
         val allExcludedPaths = excludedPaths
@@ -44,11 +45,9 @@ class JwtAuthenticationFilter(
         val requestURI = request.requestURI
         val method = request.method
 
-        logger.info("JWT 필터 진입, - $method $requestURI")
-
         try {
             val token = getTokenFromRequest(request)
-            logger.info("토큰 추출 결과: ${if (token != null) "토큰 있음 (${token.take(20)}...)" else "토큰 없음"}")
+//            logger.info("토큰 추출 결과: ${if (token != null) "토큰 있음 (${token.take(20)}...)" else "토큰 없음"}")
 
             if (token != null && jwtTokenProvider.validateToken(token)) {
                 logger.info("토큰 검증 성공")
@@ -68,7 +67,6 @@ class JwtAuthenticationFilter(
 
                 // SecurityContext에 인증 정보 설정
                 SecurityContextHolder.getContext().authentication = authentication
-                logger.info(" SecurityContext에 저장 1 ")
 
                 // 설정 확인
                 val currentAuth = SecurityContextHolder.getContext().authentication
@@ -79,12 +77,20 @@ class JwtAuthenticationFilter(
                     logger.warn(" 토큰 검증 실패")
                 } else {
                     logger.info("토큰 없음")
+                    request.setAttribute("exception", InvalidTokenException())
                 }
             }
 
-        } catch (e: Exception) {
+        } catch(e: InvalidTokenException) {
+            logger.error("만료된 토큰: ${e.message}", e)
+            SecurityContextHolder.clearContext()
+            request.setAttribute("exception", e)
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+        }
+        catch (e: Exception) {
             logger.error("JWT 필터 처리 중 오류: ${e.message}", e)
             SecurityContextHolder.clearContext()
+            request.setAttribute("exception", InvalidTokenException())
         }
 
         filterChain.doFilter(request, response)

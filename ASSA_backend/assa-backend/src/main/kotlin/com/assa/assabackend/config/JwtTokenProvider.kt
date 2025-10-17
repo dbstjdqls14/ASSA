@@ -1,5 +1,6 @@
 package com.assa.assabackend.config
 
+import com.assa.assabackend.exception.InvalidTokenException
 import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
 import org.slf4j.LoggerFactory
@@ -83,31 +84,37 @@ class JwtTokenProvider(
             val isExpired = claims.body.expiration.before(Date())
             if (isExpired) {
                 logger.warn("토큰이 만료되었습니다")
-                return false
+                throw InvalidTokenException()
             }
 
             true
 
-        } catch (e: SecurityException) {
+        } catch (e: SecurityException) { // 수정 필요 오류의 세분화 필요함.
             logger.error("JWT 서명이 유효하지 않습니다: ${e.message}")
-            false
+            throw InvalidTokenException()
+
         } catch (e: MalformedJwtException) {
             logger.error("JWT 형식이 잘못되었습니다: ${e.message}")
-            false
+            throw InvalidTokenException()
+
         } catch (e: ExpiredJwtException) {
             logger.error("JWT 토큰이 만료되었습니다: ${e.message}")
             logger.error("만료 시간: ${e.claims.expiration}")
             logger.error("현재 시간: ${Date()}")
-            false
+            throw InvalidTokenException()
+
         } catch (e: UnsupportedJwtException) {
             logger.error("지원하지 않는 JWT 토큰입니다: ${e.message}")
-            false
+            throw InvalidTokenException()
+
         } catch (e: IllegalArgumentException) {
             logger.error("JWT 토큰이 비어있습니다: ${e.message}")
-            false
+            throw InvalidTokenException()
+
         } catch (e: Exception) {
             logger.error("JWT 토큰 검증 중 예상치 못한 오류: ${e.message}", e)
-            false
+            throw InvalidTokenException()
+
         }
     }
 

@@ -1,7 +1,8 @@
 package com.assa.assabackend.config
 
+import com.assa.assabackend.exception.GlobalExceptionHandler
+import com.assa.assabackend.util.CustomAuthenticationEntryPoint
 import com.assa.assabackend.util.JwtAuthenticationFilter
-import jakarta.servlet.FilterChain
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -10,8 +11,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -22,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtTokenProvider: JwtTokenProvider,
+    private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint
 ){
 
     @Bean
@@ -33,13 +33,16 @@ class SecurityConfig(
     ): AuthenticationManager = authConfig.authenticationManager
 
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, globalExceptionHandler: GlobalExceptionHandler): SecurityFilterChain {
         http.csrf { it.disable() }
             .sessionManagement{ it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .exceptionHandling{
+                it.authenticationEntryPoint(customAuthenticationEntryPoint)
+            }
             .authorizeHttpRequests{ auth ->
                 auth
                     .requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/**").permitAll()
+                    .anyRequest().authenticated()
             }
             .addFilterBefore(
                 createJwtFilterWithExclusions(),

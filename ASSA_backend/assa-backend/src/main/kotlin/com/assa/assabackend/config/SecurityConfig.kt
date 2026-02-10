@@ -41,6 +41,7 @@ class SecurityConfig(
             }
             .authorizeHttpRequests{ auth ->
                 auth
+                    .requestMatchers("/error").permitAll()
                     .requestMatchers("/auth/**").permitAll()
                     .anyRequest().authenticated()
             }
@@ -55,7 +56,8 @@ class SecurityConfig(
             "/auth/login",
             "/auth/register",
             "/auth/refresh",
-            "/auth/logout"
+            "/auth/logout",
+            "/auth/signup"
         )
 
         return JwtAuthenticationFilter(jwtTokenProvider, excludedPaths)

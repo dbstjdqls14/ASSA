@@ -4,8 +4,8 @@ import com.assa.assabackend.exception.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.AuthenticationException
-import org.springframework.stereotype.Component
 import org.springframework.security.web.AuthenticationEntryPoint
+import org.springframework.stereotype.Component
 
 @Component
 class CustomAuthenticationEntryPoint : AuthenticationEntryPoint {
@@ -15,13 +15,17 @@ class CustomAuthenticationEntryPoint : AuthenticationEntryPoint {
         response: HttpServletResponse,
         authException: AuthenticationException
     ) {
-        val exception = request.getAttribute("exception")
+        // 이미 커밋된 응답이면 더 건드리지 않음
+        if (response.isCommitted) return
 
-        if (exception is InvalidTokenException) {
-            throw exception
+        val ex = request.getAttribute("exception")
+        val message = when (ex) {
+            is InvalidTokenException -> "INVALID_TOKEN"
+            else -> "UNAUTHORIZED"
         }
 
-        throw InvalidTokenException()
+        response.status = HttpServletResponse.SC_UNAUTHORIZED
+        response.contentType = "application/json;charset=UTF-8"
+        response.writer.write("""{"message":"$message"}""")
     }
-
 }

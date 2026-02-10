@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
-@Component  //
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val excludedPaths: List<String> = emptyList()
@@ -24,18 +23,7 @@ class JwtAuthenticationFilter(
 
         val allExcludedPaths = excludedPaths
 
-        return allExcludedPaths.any { excludedPath ->
-            when {
-                excludedPath.endsWith("/**") -> {
-                    val basePath = excludedPath.removeSuffix("/**")
-                    requestPath.startsWith(basePath)
-                }
-                excludedPath.contains("*") -> {
-                    requestPath.matches(excludedPath.replace("*", ".*").toRegex())
-                }
-                else -> requestPath == excludedPath
-            }
-        }
+        return requestPath.startsWith("/auth/")
     }
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -44,11 +32,18 @@ class JwtAuthenticationFilter(
     ) {
         val requestURI = request.requestURI
         val method = request.method
+        val token = getTokenFromRequest(request)
+
+
+        if (token.isNullOrBlank()) {
+            // 토큰 없음 = 익명 요청. permitAll 엔드포인트는 여기서 그냥 통과해야 정상
+            filterChain.doFilter(request, response)
+            return
+        }
 
         try {
-            val token = getTokenFromRequest(request)
 //            logger.info("토큰 추출 결과: ${if (token != null) "토큰 있음 (${token.take(20)}...)" else "토큰 없음"}")
-
+            logger.info("Filter 진입")
             if (token != null && jwtTokenProvider.validateToken(token)) {
                 logger.info("토큰 검증 성공")
 

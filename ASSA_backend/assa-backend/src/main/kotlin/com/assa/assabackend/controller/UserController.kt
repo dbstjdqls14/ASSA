@@ -2,6 +2,7 @@ package com.assa.assabackend.controller
 
 import com.assa.assabackend.config.JwtTokenProvider
 import com.assa.assabackend.dto.UserMypageResponse
+import com.assa.assabackend.dto.UserProfileResponse
 import com.assa.assabackend.dto.UserResponse
 import com.assa.assabackend.service.UserService
 import org.slf4j.LoggerFactory
@@ -26,6 +27,13 @@ class UserController(
         return ResponseEntity.ok(UserMypageResponse.from(
             userService.getUser( authentication.name.toLong() ))
         )
+    }
+
+    @GetMapping("/profile")
+    fun getProfile(authentication: Authentication): ResponseEntity<UserProfileResponse> {
+        return ResponseEntity.ok(UserProfileResponse.from(
+            userService.getUser( authentication.name.toLong() )
+        ))
     }
 
 

@@ -11,7 +11,7 @@ data class Phone(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "phone_id", nullable = false)
-    val phoneId: Int,
+    val phoneId: Int? = null,
 
     @Column(name = "spec_id") // fk 1:1
     val specId: Int,

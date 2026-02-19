@@ -62,6 +62,7 @@ class AuthController (
     fun signup(
         @Valid @RequestBody request: SignupRequest
     ): ResponseEntity<ApiResponse<Nothing>> {
+        println("controller 진입")
         val response = authService.signup(request)
         val status = if (response.success) HttpStatus.OK else HttpStatus.BAD_REQUEST
         return ResponseEntity(response, status)
@@ -75,13 +76,20 @@ class AuthController (
         return ResponseEntity(tokenResponse, HttpStatus.OK)
     }
 
+    @PostMapping("/logout")
+    fun logout(
+        authentication: Authentication
+    ): ResponseEntity<String> {
+        authService.logout(authentication)
+        return ResponseEntity("LOGOUT SUCCESS", HttpStatus.OK)
+    }
+
     @PostMapping("/refresh")
     fun refresh(
-        @RequestBody @Valid refreshTokenRequest: RefreshTokenRequest,
-        authentication: Authentication
+        @RequestBody @Valid refreshTokenRequest: RefreshTokenRequest
     ): ResponseEntity<TokenResponse> {
         val token = refreshTokenRequest.getCleanToken()
-        val tokenResponse = authService.refresh(token, authentication)
+        val tokenResponse = authService.refresh(token)
 
         return ResponseEntity(tokenResponse, HttpStatus.OK)
     }

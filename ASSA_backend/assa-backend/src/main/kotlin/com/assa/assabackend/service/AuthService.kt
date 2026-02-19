@@ -147,6 +147,7 @@ class AuthService(
      * 회원가입
      */
     fun signup(request: SignupRequest): ApiResponse<Nothing> {
+        logger.info("signUp service 진입")
         // 이메일 인증 완료 여부 확인
         val verifiedKey = "email_verified:${request.email}"
         val isVerified = redisTemplate.opsForValue().get(verifiedKey)
@@ -215,15 +216,24 @@ class AuthService(
         )
     }
 
-    fun refresh(
-        refreshToken: String,
-        authentication: Authentication): TokenResponse {
+    /*
+     로그아웃
+     */
+    fun logout(
+        authentication: Authentication
+    ){
+        jwtTokenProvider.invalidateToken(authentication.name.toLong())
+    }
 
-        val userId =  authentication.name.toLong()
+    fun refresh(
+        refreshToken: String): TokenResponse {
+
+        val userId =  jwtTokenProvider.getUserIdFromRefreshToken(refreshToken)
 
         if(!(jwtTokenProvider.validateRefreshToken(refreshToken, userId))) // RT 유효성 검사1
             throw InvalidRefreshTokenException()
 
+        // 한 번 더 보안.
         val user = userRepository.findByUserIdOrThrow(userId)
 
 

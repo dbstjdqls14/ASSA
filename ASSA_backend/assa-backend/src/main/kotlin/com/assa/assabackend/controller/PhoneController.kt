@@ -1,6 +1,8 @@
 package com.assa.assabackend.controller
 
+import com.assa.assabackend.dto.MarketPriceResponse
 import com.assa.assabackend.dto.UserRegisterPhoneRequest
+import com.assa.assabackend.service.MarketPriceService
 import com.assa.assabackend.service.PhoneService
 import lombok.extern.slf4j.Slf4j
 import org.springframework.http.HttpStatus
@@ -12,7 +14,8 @@ import org.springframework.web.bind.annotation.*
 @Slf4j
 @RequestMapping("/phone")
 class PhoneController(
-    private val phoneService: PhoneService
+    private val phoneService: PhoneService,
+    private val marketService: MarketPriceService
 ) {
 
     @GetMapping("/testConnection")
@@ -28,6 +31,9 @@ class PhoneController(
         phoneService.postPhone(request)
         return ResponseEntity.ok(HttpStatus.OK);
     }
-
+    @GetMapping("/{phoneId}/market-price")
+    fun getMarketPrice(@PathVariable phoneId: Int): ResponseEntity<MarketPriceResponse> {
+        return ResponseEntity.ok(marketService.getMarketPrice(phoneId))
+    }
 
 }
